@@ -94,10 +94,6 @@
       background: #4f46e5;
       color: white;
     }
-    @media (max-width: 480px) {
-      .form-container { padding: 15px; }
-      button { font-size: 0.95rem; }
-    }
   </style>
 </head>
 <body>
@@ -150,7 +146,21 @@
     </div>
   </div>
 
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore-compat.js"></script>
   <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBVtSOWlpPcNUHgsXjHtVjV3Tt4nt220r0",
+      authDomain: "digital-nimantran-form-213dd.firebaseapp.com",
+      projectId: "digital-nimantran-form-213dd",
+      storageBucket: "digital-nimantran-form-213dd.appspot.com",
+      messagingSenderId: "613010803048",
+      appId: "1:613010803048:web:58e679b96428c46582aedd"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
     const today = new Date().toISOString().split("T")[0];
     document.getElementById("date").setAttribute("min", today);
 
@@ -163,19 +173,16 @@
         address: document.getElementById("address").value.trim(),
         date: document.getElementById("date").value.trim(),
         eventType: document.getElementById("eventType").value,
-        submittedAt: new Date().toLocaleString()
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
       };
-
-      // Save to localStorage
-      let forms = JSON.parse(localStorage.getItem("submissions") || "[]");
-      forms.push(data);
-      localStorage.setItem("submissions", JSON.stringify(forms));
-
-      // Show popup
-      document.getElementById("popup").style.display = "flex";
-
-      // Clear form
-      this.reset();
+      db.collection("formSubmissions").add(data)
+        .then(() => {
+          document.getElementById("popup").style.display = "flex";
+          document.getElementById("eventForm").reset();
+        })
+        .catch((error) => {
+          alert("Something went wrong: " + error.message);
+        });
     });
   </script>
 </body>

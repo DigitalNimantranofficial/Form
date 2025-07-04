@@ -98,18 +98,6 @@
       box-shadow: 0 0 15px #00f2ea;
     }
 
-    .bottom-links {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 15px;
-      font-size: 0.85rem;
-    }
-
-    .bottom-links a {
-      color: #ff0057;
-      text-decoration: none;
-    }
-
     #adminPanel {
       display: none;
       width: 95%;
@@ -210,7 +198,7 @@
 </head>
 <body>
 
-<!-- 💡 Login Glow Frame -->
+<!-- 🔐 Login Glow Frame -->
 <div class="glow-wrapper" id="loginBox">
   <form id="loginForm" class="login-container">
     <h2><span style="color:#ff0057;">💖</span> LOGIN <span style="color:#ff0057;">💖</span></h2>
@@ -221,10 +209,6 @@
       <input type="password" id="password" placeholder="Password" required />
     </div>
     <button type="submit" id="submitBtn">Sign in</button>
-    <div class="bottom-links">
-      <a href="#">Forgot Password</a>
-      <a href="#">Sign up</a>
-    </div>
   </form>
 </div>
 
@@ -257,30 +241,39 @@
   <button id="logoutBtn" onclick="logout()">Logout</button>
 </div>
 
-<!-- 🔐 Firebase SDK -->
+<!-- 🔐 Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore-compat.js"></script>
 
 <script>
   const firebaseConfig = {
     apiKey: "AIzaSyBVtSOWlpPcNUHgsXjHtVjV3Tt4nt220r0",
     authDomain: "digital-nimantran-form-213dd.firebaseapp.com",
     projectId: "digital-nimantran-form-213dd",
-    storageBucket: "digital-nimantran-form-213dd.firebasestorage.app",
+    storageBucket: "digital-nimantran-form-213dd.appspot.com",
     messagingSenderId: "613010803048",
     appId: "1:613010803048:web:58e679b96428c46582aedd"
   };
 
   firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
+  const db = firebase.firestore();
 
-  document.getElementById("loginForm").addEventListener("submit", function(e) {
+  // Auto-login check
+  const savedLoginTime = localStorage.getItem("adminLoginTime");
+  if (savedLoginTime && Date.now() - parseInt(savedLoginTime) < 10 * 60 * 1000) {
+    document.getElementById("loginBox").style.display = "none";
+    document.getElementById("adminPanel").style.display = "block";
+    loadData();
+  }
+
+  document.getElementById("loginForm").addEventListener("submit", function (e) {
     e.preventDefault();
 
     const submitBtn = document.getElementById("submitBtn");
     submitBtn.disabled = true;
     submitBtn.textContent = "Please wait...";
-
     document.getElementById("loadingSpinner").style.display = "flex";
 
     const email = document.getElementById("email").value.trim();
@@ -291,11 +284,12 @@
         document.getElementById("loadingSpinner").style.display = "none";
         document.getElementById("loginBox").style.display = "none";
         document.getElementById("adminPanel").style.display = "block";
+        localStorage.setItem("adminLoginTime", Date.now().toString());
         loadData();
       })
       .catch(error => {
         document.getElementById("loadingSpinner").style.display = "none";
-        showErrorPopup(); // Show popup instead of alert
+        showErrorPopup();
         submitBtn.disabled = false;
         submitBtn.textContent = "Sign in";
       });
@@ -303,28 +297,31 @@
 
   function loadData() {
     const table = document.getElementById("dataTable");
-    const entries = JSON.parse(localStorage.getItem("submissions") || "[]");
-    table.innerHTML = "";
-    for (let entry of entries) {
-      table.innerHTML += `<tr>
-        <td>${entry.name}</td>
-        <td>${entry.email}</td>
-        <td>${entry.contact}</td>
-        <td>${entry.address}</td>
-        <td>${entry.date}</td>
-        <td>${entry.eventType || "-"}</td>
-        <td>${entry.submittedAt}</td>
-      </tr>`;
-    }
+    db.collection("formSubmissions").orderBy("timestamp", "desc").get().then(snapshot => {
+      table.innerHTML = "";
+      snapshot.forEach(doc => {
+        const d = doc.data();
+        const time = d.timestamp?.seconds ? new Date(d.timestamp.seconds * 1000).toLocaleString() : "-";
+        table.innerHTML += `<tr>
+          <td>${d.name}</td>
+          <td>${d.email}</td>
+          <td>${d.contact}</td>
+          <td>${d.address}</td>
+          <td>${d.date}</td>
+          <td>${d.eventType}</td>
+          <td>${time}</td>
+        </tr>`;
+      });
+    });
   }
 
   function logout() {
     auth.signOut().then(() => {
+      localStorage.removeItem("adminLoginTime");
       location.reload();
     });
   }
 
-  // 🔴 Show/hide popup functions
   function showErrorPopup() {
     document.getElementById("errorPopup").style.display = "flex";
   }
@@ -333,5 +330,6 @@
     document.getElementById("errorPopup").style.display = "none";
   }
 </script>
+
 </body>
 </html>
