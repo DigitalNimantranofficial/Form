@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Event Inquiry Form</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Outfit', sans-serif;
+      background: linear-gradient(to right, #f3f4f6, #e0e7ff);
+      padding: 20px;
+    }
+    .back-arrow {
+      font-size: 2rem;
+      color: #4f46e5;
+      cursor: pointer;
+      margin-bottom: 15px;
+    }
+    .form-container {
+      max-width: 500px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+    .form-container h2 {
+      text-align: center;
+      color: #4f46e5;
+      font-size: 1.6rem;
+      margin-bottom: 20px;
+    }
+    label {
+      margin-top: 15px;
+      display: block;
+      font-weight: 600;
+      color: #374151;
+    }
+    input, textarea, select {
+      width: 100%;
+      padding: 12px;
+      margin-top: 6px;
+      font-size: 1rem;
+      border: 2px solid #c7d2fe;
+      border-radius: 10px;
+    }
+    .btns {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    button {
+      padding: 12px;
+      font-size: 1rem;
+      background: #4f46e5;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background: #4338ca;
+    }
+    .message {
+      text-align: center;
+      font-size: 1rem;
+      margin-top: 25px;
+      font-weight: bold;
+      color: #000;
+    }
+    #popup {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      justify-content: center;
+      align-items: center;
+      z-index: 999;
+    }
+    #popupContent {
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      text-align: center;
+    }
+    #popupContent button {
+      margin-top: 15px;
+      background: #4f46e5;
+      color: white;
+    }
+    @media (max-width: 480px) {
+      .form-container { padding: 15px; }
+      button { font-size: 0.95rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 🔙 Back Arrow -->
+  <div class="back-arrow" onclick="window.location.href='https://digitalnimantranofficial.github.io/Main/'">&#8592;</div>
+
+  <div class="form-container">
+    <h2>Event Booking Form<br><span style="font-size: 1rem;">इव्हेंट बुकिंग फॉर्म</span></h2>
+    <form id="eventForm">
+      <label for="name">Name / नाव</label>
+      <input type="text" id="name" required />
+
+      <label for="email">Email ID / ईमेल आयडी</label>
+      <input type="email" id="email" required />
+
+      <label for="contact">Contact Number / संपर्क क्रमांक</label>
+      <input type="tel" id="contact" pattern="[0-9]{10}" maxlength="10" required placeholder="10-digit number only" />
+
+      <label for="address">Address / पत्ता</label>
+      <textarea id="address" rows="3" required></textarea>
+
+      <label for="date">Event Date / कार्यक्रमाची तारीख</label>
+      <input type="date" id="date" required />
+
+      <label for="eventType">Event Type / कार्यक्रम प्रकार</label>
+      <select id="eventType" required>
+        <option value="" disabled selected>Select Event Type</option>
+        <option>Wedding Invitations</option>
+        <option>Birthday Invites</option>
+        <option>Engagement Announcements</option>
+        <option>Housewarming Invitations</option>
+      </select>
+
+      <div class="btns">
+        <button type="submit">Submit</button>
+      </div>
+    </form>
+
+    <div class="message">
+      We will contact you soon.<br>आम्ही लवकरच तुम्हाला संपर्क करू.
+    </div>
+  </div>
+
+  <!-- ✅ Popup -->
+  <div id="popup">
+    <div id="popupContent">
+      <h3>Your Form Submitted ✅</h3>
+      <button onclick="window.location.href='https://digitalnimantranofficial.github.io/Main/'">Go to Home</button>
+    </div>
+  </div>
+
+  <script>
+    const today = new Date().toISOString().split("T")[0];
+    document.getElementById("date").setAttribute("min", today);
+
+    document.getElementById("eventForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const data = {
+        name: document.getElementById("name").value.trim(),
+        email: document.getElementById("email").value.trim(),
+        contact: document.getElementById("contact").value.trim(),
+        address: document.getElementById("address").value.trim(),
+        date: document.getElementById("date").value.trim(),
+        eventType: document.getElementById("eventType").value,
+        submittedAt: new Date().toLocaleString()
+      };
+
+      // Save to localStorage
+      let forms = JSON.parse(localStorage.getItem("submissions") || "[]");
+      forms.push(data);
+      localStorage.setItem("submissions", JSON.stringify(forms));
+
+      // Show popup
+      document.getElementById("popup").style.display = "flex";
+
+      // Clear form
+      this.reset();
+    });
+  </script>
+</body>
+</html>
